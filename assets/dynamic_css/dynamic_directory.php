@@ -41,5 +41,16 @@ print ".um-$form_id .um-member-photo img {
 
 }
 
+
+//dynamic CSS for directory views
+$views = UM()->members()->get_directory_views();
+foreach ( $views as $key => $view ) {
+	$css_content = ! empty( $views[ $key + 1 ]['css_content'] ) ? $views[ $key + 1 ]['css_content'] : $views[0]['css_content'];
+
+	print ".um-member-directory-view-type-a:hover .{$view['icon']}:before {
+		content: '{$css_content}';
+	}";
+}
+
 ?>
 </style>

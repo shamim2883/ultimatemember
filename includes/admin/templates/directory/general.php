@@ -39,10 +39,7 @@ $_um_sorting_fields = get_post_meta( $post_id, '_um_sorting_fields', true );
 			'name'		=> '_um_view_type',
 			'label'		=> __( 'View type', 'ultimate-member' ),
 			'tooltip'	=> __( 'View type a specific parameter in the directory', 'ultimate-member' ),
-			'options'	=> array(
-				'grid'	=> __( 'Grid', 'ultimate-member' ),
-				'list'	=> __( 'List', 'ultimate-member' ),
-			),
+			'options'	=> UM()->members()->get_directory_view_options(),
 			'value'		=> UM()->query()->get_meta_value( '_um_view_type' ),
 		),
 		array(

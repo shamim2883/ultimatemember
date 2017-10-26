@@ -78,6 +78,9 @@ if ( ! class_exists( 'Members' ) ) {
 		 * @param $args
 		 */
 		function pre_directory_shortcode( $args ) {
+
+			$args['all_view_types'] = $this->get_directory_views();
+
 			wp_localize_script( 'um_members', 'um_members_args', $args );
 		}
 
@@ -481,6 +484,40 @@ if ( ! class_exists( 'Members' ) ) {
 				'mycred_rank'   => __( 'myCRED Rank', 'ultimate-member' ),
 			) );
 
+		}
+
+
+		/**
+		 * Get all view types for Member Directory
+		 *
+		 * @return array View Types
+		 */
+		function get_directory_views() {
+
+			$types = array(
+				array( 'key' => 'grid', 'title' => __( 'Grid', 'ultimate-member' ), 'icon' => 'um-faicon-th', 'css_content' => '\f00a', 'allow_pagination' => true ),
+				array( 'key' => 'list', 'title' => __( 'List', 'ultimate-member' ), 'icon' => 'um-faicon-list', 'css_content' => '\f03a', 'allow_pagination' => true ),
+			);
+
+			$types = apply_filters( 'um_member_directory_view_types', $types );
+
+			return $types;
+		}
+
+
+		/**
+		 * @return array directory view options
+		 */
+		function get_directory_view_options() {
+
+			$types = $this->get_directory_views();
+
+			$options = array();
+			foreach ( $types as $type_key => $type ) {
+				$options[ $type['key'] ] = $type['title'];
+			}
+
+			return $options;
 		}
 
 	}

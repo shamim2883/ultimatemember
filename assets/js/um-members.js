@@ -5,6 +5,11 @@ var um_members_hash_data = {};
 
 var um_members_directory_busy = [];
 
+var all_layouts = {};
+
+jQuery.each( um_members_args.all_view_types, function( key ) {
+	all_layouts[ um_members_args.all_view_types[ key ]['key'] ] = um_members_args.all_view_types[ key ];
+});
 
 jQuery(document).ready(function() {
 
@@ -17,16 +22,37 @@ jQuery(document).ready(function() {
 		if ( is_directory_busy( directory ) )
 			return false;
 
-		var layout = um_members_get_layout( directory );
+		var trigger = false;
+		var current_layout = jQuery(this).data('view_type');
+		jQuery.each( um_members_args.all_view_types, function( key ) {
+			if ( um_members_args.all_view_types[key]['key'] == current_layout )
+				trigger = key;
+		});
 
-		layout = ( layout == 'grid' ) ? 'list' : 'grid';
+		var first_layout = um_members_args.all_view_types[0]['key'];
+		var second_layout = um_members_args.all_view_types[1]['key'];
+		var next_layout = false;
+		var next_next_layout = false;
 
-		um_members_set_layout( directory, layout );
+		if ( typeof um_members_args.all_view_types[ trigger + 1 ] == 'undefined' ) {
+			next_layout = first_layout;
+			next_next_layout = second_layout;
+		} else if ( typeof um_members_args.all_view_types[ trigger + 2 ] == 'undefined' ) {
+			next_layout = um_members_args.all_view_types[ trigger + 1 ]['key'];
+			next_next_layout = first_layout;
+		} else {
+			next_layout = um_members_args.all_view_types[ trigger + 1 ]['key'];
+			next_next_layout = um_members_args.all_view_types[ trigger + 2 ]['key'];
+		}
 
-		var button_class = ( layout == 'list' ) ? 'um-faicon-list' : 'um-faicon-th';
+		um_members_set_layout( directory, next_layout );
+
+		jQuery(this).data( 'view_type', next_layout );
+
+		var button_class = all_layouts[next_layout].icon;
 		directory.find('.um-member-directory-view-type-a i').attr( 'class', button_class );
 
-		var tooltip_title = ( layout == 'list' ) ? 'Change to Grid' : 'Change to List';
+		var tooltip_title = 'Change to ' + all_layouts[next_next_layout].title;
 		directory.find('.um-member-directory-view-type-a').attr( 'original-title', tooltip_title );
 
 		directory.find('.um-member-directory-view-type-a').tipsy('hide').tipsy('show');
@@ -424,15 +450,15 @@ function um_members_set_filters( directory ) {
 		var filter_title = jQuery(this).find('select').data('placeholder');
 		var filter_value_title;
 
-        var filter = jQuery(this);
+		var filter = jQuery(this);
 
 		if ( typeof( query_value ) != 'undefined' ) {
 			if ( typeof( query_value ) == 'string' ) {
-                filter_value_title = filter.find('select option[value="' + query_value + '"]').data('value_label');
+				filter_value_title = filter.find('select option[value="' + query_value + '"]').data('value_label');
 				filters_data.push( {'name':filter_name, 'label':filter_title, 'value_label':filter_value_title, 'value':query_value, 'unique_id':unique_id} );
 			} else {
 				jQuery.each( query_value, function(e) {
-                    filter_value_title = filter.find('select option[value="' + query_value[e] + '"]').data('value_label');
+					filter_value_title = filter.find('select option[value="' + query_value[e] + '"]').data('value_label');
 					filters_data.push( {'name': filter_name, 'label':filter_title, 'value_label':filter_value_title, 'value':query_value[e], 'unique_id':unique_id} );
 				});
 			}
@@ -495,6 +521,8 @@ function um_ajax_get_members( directory ) {
 
 			directory.data( 'total_pages', answer.data.pagi.total_pages );
 
+			//jQuery( document ).trigger( "um_member_directory_loaded", [ answer, directory ] );
+
 			um_members_directory_busy[ um_members_get_unique_id( directory ) ] = false;
 		},
 		error: function( e ) {
@@ -509,6 +537,9 @@ function um_build_template( directory, data ) {
 	var template = wp.template( 'um-member-' + layout );
 
 	directory.find('.um-members, .um-members-list').remove();
+
+	jQuery( document ).trigger( "um_member_directory_clear_template", [ directory ] );
+
 	directory.find('.um-members-wrapper').prepend( template( data.data ) );
 	directory.addClass('um-loaded');
 	if ( directory.find('.um-members').length ) {
@@ -516,8 +547,13 @@ function um_build_template( directory, data ) {
 		jQuery(window).trigger('resize');
 	}
 
+	if ( all_layouts[layout].allow_pagination ) {
+		directory.find('.um-members-pagination-box').show();
+	} else {
+		directory.find('.um-members-pagination-box').hide();
+	}
 
-    jQuery( document ).trigger( "um_build_template", [ directory ] );
+	jQuery( document ).trigger( "um_build_template", [ directory, data ] );
 }
 
 

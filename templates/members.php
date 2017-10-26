@@ -1,6 +1,18 @@
 <?php $args['view_type'] = ! empty( $args['view_type'] ) ? $args['view_type'] : '';
 $args['view_type'] = ! empty( $_GET['view_type'] ) ? $_GET['view_type'] : $args['view_type'];
-$view_type = ( ! empty( $args['view_type'] ) && 'list' == $args['view_type'] ) ? 'list' : 'grid';
+
+$all_views = UM()->members()->get_directory_views();
+
+$views = array();
+foreach ( $all_views as $view ) {
+    $views[ $view['key'] ] = $view;
+}
+
+if ( ! in_array( $args['view_type'], array_keys( $views ) ) ) {
+    $view_type = 'grid';
+} else {
+    $view_type = $args['view_type'];
+}
 
 $show_search = true;
 if ( ! empty( $args['roles_can_search'] ) && ! in_array( um_user( 'role' ), $args['roles_can_search'] ) ) {
@@ -49,8 +61,29 @@ if ( ! empty( $args['roles_can_search'] ) && ! in_array( um_user( 'role' ), $arg
                     </div>
                 <?php } ?>
                 <div class="um-member-directory-view-type">
-                    <a href="javascript:void(0);" class="um-member-directory-view-type-a um-tip-n" original-title="<?php if ( 'list' == $view_type ) { ?>Change to Grid<?php } else { ?>Change to List<?php } ?>">
-                        <i class="<?php if ( 'list' == $view_type ) { ?>um-faicon-list<?php } else { ?>um-faicon-th<?php } ?>"></i>
+                    <?php $next_view = array();
+                    $first_view = false;
+                    $marker = false;
+                    foreach ( $views as $view_key => $view_data ) {
+                        if ( ! $first_view )
+                            $first_view = $view_data;
+
+                        if ( $marker ) {
+                            $next_view = $view_data;
+                            break;
+                        }
+
+                        if ( $view_key == $view_type ) {
+                            $marker = true;
+                        }
+                    }
+
+                    if ( $marker == 1 ) {
+                        $next_view = $first_view;
+                    } ?>
+
+                    <a href="javascript:void(0);" data-view_type="<?php echo $view_type ?>" class="um-member-directory-view-type-a um-tip-n" original-title="<?php printf( __( 'Change to %s', 'ultimate-member' ), $next_view['title'] ) ?>">
+                        <i class="<?php echo $views[ $view_type ]['icon'] ?>"></i>
                     </a>
                 </div>
             </div>
@@ -115,7 +148,9 @@ if ( ! empty( $args['roles_can_search'] ) && ! in_array( um_user( 'role' ), $arg
             <?php $args['view_type'] = ! empty( $_GET['view_type'] ) ? $_GET['view_type'] : $args['view_type'];
 
             include UM()->templates()->get_template( 'members-grid' );
-            include UM()->templates()->get_template( 'members-list' ); ?>
+            include UM()->templates()->get_template( 'members-list' );
+
+            do_action( 'um_member_directory_content', $args ); ?>
 
             <div class="um-members-overlay"><div class="um-ajax-loading"></div></div>
         </div>

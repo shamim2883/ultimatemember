@@ -771,13 +771,6 @@ div.uimob500 .um-members-list .um-member-card-actions {
 	text-decoration: none;
 }
 
-.um-member-directory-view-type-a:hover .um-faicon-th:before {
-	content: '\f03a';
-}
-
-.um-member-directory-view-type-a:hover .um-faicon-list:before {
-	content: '\f00a';
-}
 
 
 .um-members-list .um-member-meta {
