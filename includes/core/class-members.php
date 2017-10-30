@@ -421,6 +421,9 @@ if ( ! class_exists( 'Members' ) ) {
 					'social_urls'           => UM()->fields()->show_social_urls( false ),
 				);
 
+
+				$data_array = apply_filters( 'um_ajax_get_members_data', $data_array, $user_id, $args );
+
 				if ( $args['show_tagline'] && is_array( $args['tagline_fields'] ) ) {
 					foreach ( $args['tagline_fields'] as $key ) {
 						if ( $key && um_filtered_value( $key ) ) {
@@ -437,8 +440,6 @@ if ( ! class_exists( 'Members' ) ) {
 						}
 					}
 				}
-
-				$data_array = apply_filters( 'um_ajax_get_members_data', $data_array, $user_id );
 
 				$users_data[] = $data_array;
 
