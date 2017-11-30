@@ -489,6 +489,12 @@
 
 					return $value;
 
+				} else if( isset( UM()->user()->profile[$key] ) ){
+
+					$value = UM()->user()->profile[$key];
+					$value = apply_filters( "um_edit_{$key}_field_value", $value, $key );
+					return $value;
+
 				} else if ($default) {
 
 					$default = apply_filters( "um_field_default_value", $default, $data, $type );
@@ -681,10 +687,11 @@
 
 				if (in_array( $type, array( 'select', 'multiselect' ) ) && isset( $data['custom_dropdown_options_source'] ) && !empty( $data['custom_dropdown_options_source'] )) {
 
-					if (function_exists( $data['custom_dropdown_options_source'] )) {
-
-						$arr_options = call_user_func( $data['custom_dropdown_options_source'] );
-
+					if ( function_exists( $data['custom_dropdown_options_source'] ) ) {
+						
+             			$arr_options = call_user_func( $data['custom_dropdown_options_source'], $data['parent_dropdown_relationship'] );
+             		    
+						
 						if ($type == 'select') {
 							if (isset( $arr_options[$value] ) && !empty( $arr_options[$value] )) {
 								return $arr_options[$value];
@@ -732,15 +739,10 @@
 			 */
 			function get_options_from_callback( $data, $type ) {
 
+				if ( in_array( $type, array( 'select', 'multiselect' ) ) && isset( $data['custom_dropdown_options_source'] ) && ! empty( $data['custom_dropdown_options_source'] ) ) {
 
-				if (in_array( $type, array( 'select', 'multiselect' ) ) && isset( $data['custom_dropdown_options_source'] ) && !empty( $data['custom_dropdown_options_source'] )) {
-
-					if (function_exists( $data['custom_dropdown_options_source'] )) {
-
-						$arr_options = call_user_func( $data['custom_dropdown_options_source'] );
-
-					}
-
+					$arr_options = call_user_func( $data['custom_dropdown_options_source'], $data['parent_dropdown_relationship'] );
+             		
 
 				}
 
@@ -1338,7 +1340,7 @@
 							$number_limit .= " max=\"{$max}\" ";
 						}
 
-						$output .= '<input ' . $disabled . ' class="' . $this->get_class( $key, $data ) . '" type="number" name="' . $key . UM()->form()->form_suffix . '" id="' . $key . UM()->form()->form_suffix . '" value="' . htmlspecialchars( $this->field_value( $key, $default, $data ) ) . '" placeholder="' . $placeholder . '" data-validate="' . $validate . '" data-key="' . $key . '" {$number_limit} />
+						$output .= '<input ' . $disabled . ' class="' . $this->get_class( $key, $data ) . '" type="number" name="' . $key . UM()->form()->form_suffix . '" id="' . $key . UM()->form()->form_suffix . '" value="' . htmlspecialchars( $this->field_value( $key, $default, $data ) ) . '" placeholder="' . $placeholder . '" data-validate="' . $validate . '" data-key="' . $key . '" '.$number_limit.' />
     
                             </div>';
 
@@ -1875,7 +1877,7 @@
 								$has_parent_option && function_exists( $data['custom_dropdown_options_source'] ) &&
 								um_user( $data['parent_dropdown_relationship'] )
 							) {
-								$options = call_user_func( $data['custom_dropdown_options_source'] );
+								$options = call_user_func( $data['custom_dropdown_options_source'], $data['parent_dropdown_relationship'] );
 								$disabled_by_parent_option = '';
 								if (um_user( $form_key )) {
 									$select_original_option_value = " data-um-original-value='" . um_user( $form_key ) . "' ";
@@ -2589,7 +2591,10 @@
 				if (in_array( $type, array( 'block', 'shortcode', 'spacing', 'divider', 'group' ) )) {
 
 				} else {
-					if (!$this->field_value( $key, $default, $data )) return;
+
+					$_field_value = $this->field_value( $key, $default, $data );
+
+					if ( ! isset($_field_value) || $_field_value == '') return;
 				}
 
 				if (!um_can_view_field( $data )) return;
