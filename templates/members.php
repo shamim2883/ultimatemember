@@ -1,6 +1,9 @@
 <?php $args['view_type'] = ! empty( $args['view_type'] ) ? $args['view_type'] : '';
 $args['view_type'] = ! empty( $_GET['view_type'] ) ? $_GET['view_type'] : $args['view_type'];
-
+$sorting_options = array(); 
+if( isset( $args['sorting_fields'] ) && ! empty( $args['sorting_fields'] ) ){ 
+   $sorting_options = $args['sorting_fields'];
+}
 $all_views = UM()->members()->get_directory_views();
 
 $views = array();
@@ -21,7 +24,7 @@ if ( ! empty( $args['roles_can_search'] ) && ! in_array( um_user( 'role' ), $arg
 
 <div class="um <?php echo $this->get_class( $mode ); ?> um-<?php echo esc_attr( $form_id ); ?>" data-unique_id="um-<?php echo esc_attr( $form_id ) ?>" data-view_type="<?php echo $view_type ?>" data-only_search="<?php echo ( $search && $show_search && ! empty( $must_search ) ) ? 1 : 0 ?>">
 
-    <?php $sorting_options = $args['sorting_fields'];
+    <?php  
     $all_sorting_options = UM()->members()->get_sorting_fields();
 
     $sorting_options = array_intersect_key( $all_sorting_options, array_flip( $sorting_options ) ); ?>
